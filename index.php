@@ -26,7 +26,7 @@
 		<div class="wrapper" style="background-image: url('images/bg-registration-form-2.jpg');">
 			<div class="inner">
 				<form action="">
-					<h3>Schedule a meeting</h3>
+					<h3>Schedule a meeting (Expertel)</h3>
 						<div class="form-wrapper">
 							<label for="">Select the users</label>
 							<select class="js-example-basic-multiple form-control" name="users[]" multiple="multiple" required>

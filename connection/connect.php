@@ -20,12 +20,12 @@ function db(){
     return $conn;
 }
 
-function save_register()
+function save_register($user, $start_time, $end_time, $meeting_name)
 {
     $conn = db();
-    $sql = "INSERT INTO meetings (user_id, start_time, end_time, meeting_name) VALUES ('Test', 'Testing', 'Testing@tesing.com')";
+    $sql = "INSERT INTO meetings (user_id, start_time, end_time, meeting_name) VALUES ($user, $start_time, $end_time, $meeting_name)";
     if (mysqli_query($conn, $sql)) {
-        echo "New record created successfully";
+        echo "Record saved successfully";
     } else {
         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
     }
@@ -35,28 +35,46 @@ function save_register()
 function detect_conflict($user_id, $start_time)
 {
     $conn = db();
-    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time = {$start_time}";
-    $result = mysqli_query($conn, $sql);
-    if (mysqli_num_rows($result) > 0) { }
-    mysqli_close($conn);
 
+    $date = date_create($start_time);
+    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time = {date_format($date,'Y-m-d H:i:s')}";
+    $result = mysqli_query($conn, $sql);
+    if (mysqli_num_rows($result) > 0) { 
+
+        mysqli_close($conn);
+        return true;
+    }
+    
+    mysqli_close($conn);
+    return false;
 }
 
 // Function to schedule a meetings
 function schedule_meeting($meeting_name, $start_time, $end_time, $users)
 {
-    $start_time = $start_time;
-    $end_time = $end_time;
-    $users = $users;
-    $meeting_name = $meeting_name;
-    foreach ($users as $user) {
-        
-    }
-
-    if(detect_conflicts($user_id, $start_time))
+    $user_conflicts = array();
+    foreach ($users as $user) 
     {
-
+        if(detect_conflict($user, $start_time))
+        {
+            $user_conflicts[] = $user;
+        }
+        else
+        {
+            save_register($user, $start_time, $end_time, $meeting_name);
+        }
     }
 
+    if(count($user_conflicts) > 0)
+    {
+        foreach ($user_conflicts as $conflict)
+        {
+            echo "User {$conflict} has a conflicting meeting: {$meeting_name}<br>";
+            echo "The meeting has not been booked";
+        }
+    }
+    else{
+        echo "All meetings were booked";
+    }
 }
 ?>
