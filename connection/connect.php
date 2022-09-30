@@ -20,7 +20,6 @@ function db(){
 
 if(isset($_POST['action']) and $_POST['action'] == 'scheduleMeeting')
 {
-    //var_dump($_POST);
     $meeting_name = $_POST['meeting_name'] != '' ? $_POST['meeting_name'] : '0';
     $start_time = $_POST['start_time'] != '' ? $_POST['start_time'] : '0';
     $end_time = $_POST['end_time'] != '' ? $_POST['end_time'] : '0';
@@ -41,7 +40,6 @@ function save_register($user, $start_time, $end_time, $meeting_name)
 
     $sql = "INSERT INTO meetings (user_id, start_time, end_time, meeting_name) VALUES ($user, '$start_time', '$end_time', '$meeting_name')";
     if (mysqli_query($conn, $sql)) {
-        //echo "Record saved successfully";
     } else {
         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
     }
@@ -49,12 +47,14 @@ function save_register($user, $start_time, $end_time, $meeting_name)
 }
 
 // function to detect conflict with another meetings
-function detect_conflict($user_id, $start_time)
+function detect_conflict($user_id, $start_time, $end_time)
 {
     $conn = db();
     $user_conflited = "";
     $dateTime = new DateTime($start_time);
-    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time = '".$dateTime->format('Y-m-d H:i:s')."' LIMIT 1";
+    $dateTimeEnd = new DateTime($end_time);
+    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time BETWEEN '".$dateTime->format('Y-m-d H:i:s')."' AND '".$dateTimeEnd->format('Y-m-d H:i:s')."' OR end_time BETWEEN '".$dateTime->format('Y-m-d H:i:s')."' AND '".$dateTimeEnd->format('Y-m-d H:i:s')."' LIMIT 1";
+    //echo $sql; die();
     $result = mysqli_query($conn, $sql);
     if(mysqli_num_rows($result) > 0)
     {
@@ -77,7 +77,7 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
     $user_conflicts = array();
     foreach ($users as $user) 
     {
-        $flag_conflict = detect_conflict($user, $start_time);
+        $flag_conflict = detect_conflict($user, $start_time, $end_time);
         if($flag_conflict != "")
         {
             $user_conflicts[] = $flag_conflict;
@@ -99,7 +99,7 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
         echo "The meeting has not been booked";
     }
     else{
-        echo "All meetings were booked!";
+        echo "The meeting was booked!";
     }
 }
 ?>
