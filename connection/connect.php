@@ -1,10 +1,8 @@
 <?php
-
 function db(){
     // In this file, the database connection is set up 
     // database parameters
     static $conn;
-
     $servername = "localhost";
     $database = "schedule";
     $username = "root";
@@ -20,48 +18,75 @@ function db(){
     return $conn;
 }
 
+if(isset($_POST['action']) and $_POST['action'] == 'scheduleMeeting')
+{
+    //var_dump($_POST);
+    $meeting_name = $_POST['meeting_name'] != '' ? $_POST['meeting_name'] : '0';
+    $start_time = $_POST['start_time'] != '' ? $_POST['start_time'] : '0';
+    $end_time = $_POST['end_time'] != '' ? $_POST['end_time'] : '0';
+    $users = $_POST['users'] != '' ? $_POST['users'] : '0';
+    if($meeting_name == '0' or $start_time == '0' or $end_time == '0' or $users == '0')
+    {
+        echo "All data is required";
+    }else
+    {
+        schedule_meeting($users, $meeting_name, $start_time, $end_time);
+    }
+   
+}
+// Function to save meeting in to database
 function save_register($user, $start_time, $end_time, $meeting_name)
 {
     $conn = db();
-    $sql = "INSERT INTO meetings (user_id, start_time, end_time, meeting_name) VALUES ($user, $start_time, $end_time, $meeting_name)";
+
+    $sql = "INSERT INTO meetings (user_id, start_time, end_time, meeting_name) VALUES ($user, '$start_time', '$end_time', '$meeting_name')";
     if (mysqli_query($conn, $sql)) {
-        echo "Record saved successfully";
+        //echo "Record saved successfully";
     } else {
         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
     }
     mysqli_close($conn);
 }
 
+// function to detect conflict with another meetings
 function detect_conflict($user_id, $start_time)
 {
     $conn = db();
-
-    $date = date_create($start_time);
-    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time = {date_format($date,'Y-m-d H:i:s')}";
+    $user_conflited = "";
+    $dateTime = new DateTime($start_time);
+    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time = '".$dateTime->format('Y-m-d H:i:s')."' LIMIT 1";
     $result = mysqli_query($conn, $sql);
-    if (mysqli_num_rows($result) > 0) { 
-
-        mysqli_close($conn);
-        return true;
+    if(mysqli_num_rows($result) > 0)
+    {
+        while($data = mysqli_fetch_assoc($result))
+        {
+            $user_conflited = "User {$user_id} has a conflicting meeting: {$data['meeting_name']}";
+            return $user_conflited;
+        }
     }
-    
-    mysqli_close($conn);
-    return false;
+    return $user_conflited;
 }
 
 // Function to schedule a meetings
-function schedule_meeting($meeting_name, $start_time, $end_time, $users)
+function schedule_meeting($users, $meeting_name, $start_time, $end_time)
 {
+    if(empty($users))
+        exit();
+
+    $users = explode(',', $users);
     $user_conflicts = array();
     foreach ($users as $user) 
     {
-        if(detect_conflict($user, $start_time))
+        $flag_conflict = detect_conflict($user, $start_time);
+        if($flag_conflict != "")
         {
-            $user_conflicts[] = $user;
+            $user_conflicts[] = $flag_conflict;
         }
         else
         {
-            save_register($user, $start_time, $end_time, $meeting_name);
+            $startTime = new DateTime($start_time);
+            $endTime = new DateTime($end_time);
+            save_register($user, $startTime->format('Y-m-d H:i:s'), $endTime->format('Y-m-d H:i:s'), $meeting_name);
         }
     }
 
@@ -69,12 +94,12 @@ function schedule_meeting($meeting_name, $start_time, $end_time, $users)
     {
         foreach ($user_conflicts as $conflict)
         {
-            echo "User {$conflict} has a conflicting meeting: {$meeting_name}<br>";
-            echo "The meeting has not been booked";
+            echo $conflict."<br>";
         }
+        echo "The meeting has not been booked";
     }
     else{
-        echo "All meetings were booked";
+        echo "All meetings were booked!";
     }
 }
 ?>
