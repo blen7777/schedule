@@ -24,9 +24,24 @@ if(isset($_POST['action']) and $_POST['action'] == 'scheduleMeeting')
     $start_time = $_POST['start_time'] != '' ? $_POST['start_time'] : '0';
     $end_time = $_POST['end_time'] != '' ? $_POST['end_time'] : '0';
     $users = $_POST['users'] != '' ? $_POST['users'] : '0';
+
+    //Convert dates to datime PHP and validate the diff in minutes
+    $start_time = new DateTime($start_time);
+    $end_time = new DateTime($end_time);
+    $interval = $start_time->diff($end_time);
+    $diffMinutes = $interval->i;
+
     if($meeting_name == '0' or $start_time == '0' or $end_time == '0' or $users == '0')
     {
         echo "All data is required";
+    }
+    elseif($start_time->format('Y-m-d H:i:s') >= $end_time->format('Y-m-d H:i:s'))
+    {
+        echo "The start time should be higher";
+    }
+    elseif($diffMinutes <= 15)
+    {
+        echo "The minimum space for a meeting is 15 minutes";
     }else
     {
         schedule_meeting($users, $meeting_name, $start_time, $end_time);
@@ -51,9 +66,7 @@ function detect_conflict($user_id, $start_time, $end_time)
 {
     $conn = db();
     $user_conflited = "";
-    $dateTime = new DateTime($start_time);
-    $dateTimeEnd = new DateTime($end_time);
-    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time BETWEEN '".$dateTime->format('Y-m-d H:i:s')."' AND '".$dateTimeEnd->format('Y-m-d H:i:s')."' OR end_time BETWEEN '".$dateTime->format('Y-m-d H:i:s')."' AND '".$dateTimeEnd->format('Y-m-d H:i:s')."' LIMIT 1";
+    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time BETWEEN '".$start_time->format('Y-m-d H:i:s')."' AND '".$end_time->format('Y-m-d H:i:s')."' OR end_time BETWEEN '".$start_time->format('Y-m-d H:i:s')."' AND '".$end_time->format('Y-m-d H:i:s')."' LIMIT 1";
     //echo $sql; die();
     $result = mysqli_query($conn, $sql);
     if(mysqli_num_rows($result) > 0)

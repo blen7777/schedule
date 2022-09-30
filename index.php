@@ -114,7 +114,7 @@
 					$(".load-conflicts").show();
 					$(".load-conflicts").html(response);
 					$(".load-conflicts").fadeOut( 10000, function() {
-						window.location.reload();
+						//window.location.reload();
 					});
                    
 				}
