@@ -39,7 +39,7 @@ if(isset($_POST['action']) and $_POST['action'] == 'scheduleMeeting')
     {
         echo "The start time should be higher";
     }
-    elseif($diffMinutes <= 15)
+    elseif($diffMinutes < 15 and $start_time->format('Y-m-d H:i:s') >= $end_time->format('Y-m-d H:i:s'))
     {
         echo "The minimum space for a meeting is 15 minutes";
     }else
@@ -97,9 +97,9 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
         }
         else
         {
-            $startTime = new DateTime($start_time);
-            $endTime = new DateTime($end_time);
-            save_register($user, $startTime->format('Y-m-d H:i:s'), $endTime->format('Y-m-d H:i:s'), $meeting_name);
+            //$startTime = new DateTime($start_time);
+            //$endTime = new DateTime($end_time);
+            save_register($user, $start_time->format('Y-m-d H:i:s'), $end_time->format('Y-m-d H:i:s'), $meeting_name);
         }
     }
 

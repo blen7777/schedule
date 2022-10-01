@@ -47,7 +47,7 @@
 				</div>
 				<div class="form-wrapper">
 					<label for="">Start time</label>
-					<input type="datetime-local" id="start_time" name="start_time" class="form-control">
+					<input type="datetime-local" id="start_time" min="now()" name="start_time" class="form-control">
 				</div>
 				<div class="form-wrapper">
 					<label for="">End time</label>
@@ -64,12 +64,27 @@
 
 </html>
 <script type="text/javascript">
+	
 	$(document).ready(function() 
 	{
+		// disable the end_time
+		$("#end_time").hide();
+
+		var today = new Date();
+    	var past = new Date(today.setDate(today.getDate())).toISOString().slice(0, 16);
+    	var today = new Date().toISOString().slice(0, 16);
+		document.getElementsByName("start_time")[0].min = past;
+
 		$('.js-example-basic-multiple').select2();
 		$('#users').on("change", function(e) 
 		{
             $("#userList").val($("#users").val());
+ 		});
+
+		$('#start_time').on("change", function(e) 
+		{
+			$("#end_time").show();
+			document.getElementsByName("end_time")[0].min = $("#start_time").val();
  		});
 
 		$("#save-schedule").click(function() 
