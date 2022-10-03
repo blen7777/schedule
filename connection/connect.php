@@ -116,7 +116,7 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
         {
             save_register($userAdd, $start_time->format('Y-m-d H:i:s'), $end_time->format('Y-m-d H:i:s'), $meeting_name);
         }
-        echo "The meeting was booked!";
+        echo "200";
     }
 }
 ?>

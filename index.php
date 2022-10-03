@@ -64,52 +64,43 @@
 
 </html>
 <script type="text/javascript">
-	
-	$(document).ready(function() 
-	{
+	$(document).ready(function() {
 		// disable the end_time
 		$("#end_time").hide();
 
 		var today = new Date();
-    	var past = new Date(today.setDate(today.getDate())).toISOString().slice(0, 16);
-    	var today = new Date().toISOString().slice(0, 16);
+		var past = new Date(today.setDate(today.getDate())).toISOString().slice(0, 16);
+		var today = new Date().toISOString().slice(0, 16);
 		document.getElementsByName("start_time")[0].min = past;
 
 		$('.js-example-basic-multiple').select2();
-		$('#users').on("change", function(e) 
-		{
-            $("#userList").val($("#users").val());
- 		});
+		$('#users').on("change", function(e) {
+			$("#userList").val($("#users").val());
+		});
 
-		$('#start_time').on("change", function(e) 
-		{
+		$('#start_time').on("change", function(e) {
 			$("#end_time").show();
 			document.getElementsByName("end_time")[0].min = $("#start_time").val();
- 		});
+		});
 
-		$("#save-schedule").click(function() 
-		{
-			var users =  $("#userList").val();
+		$("#save-schedule").click(function() {
+			var users = $("#userList").val();
 			var start_time = $("#start_time").val();
 			var end_time = $("#end_time").val();
 			var meeting_name = $("#meeting_name").val();
-			if(users=="")
-			{
+			if (users == "") {
 				alert("User is required!");
 				return false;
 			}
-			if(meeting_name=="")
-			{
+			if (meeting_name == "") {
 				alert("Meeting name is required!");
 				return false;
 			}
-			if(start_time=="")
-			{
+			if (start_time == "") {
 				alert("Start time is required!");
 				return false;
 			}
-			if(end_time=="")
-			{
+			if (end_time == "") {
 				alert("End time is required!");
 				return false;
 			}
@@ -124,18 +115,24 @@
 					meeting_name: meeting_name
 				},
 				dataType: "html",
-				success: function(response) 
-				{
-					$(".load-conflicts").show();
-					$(".load-conflicts").html(response);
-					$(".load-conflicts").fadeOut( 9000, function() {
-						window.location.reload();
-					});
-                   
+				success: function(response) {
+					if (response == "200") {
+						$(".load-conflicts").show();
+						$(".load-conflicts").text("The meeting was booked!");
+						$(".load-conflicts").fadeOut(6000, function() {
+							window.location.reload();
+						});
+					} else {
+						$(".load-conflicts").show();
+						$(".load-conflicts").html(response);
+						$(".load-conflicts").fadeOut(4000);
+					}
+
+
 				}
 			});
 		});
 
-	
+
 	});
 </script>
