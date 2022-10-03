@@ -30,6 +30,8 @@ if(isset($_POST['action']) and $_POST['action'] == 'scheduleMeeting')
     $end_time = new DateTime($end_time);
     $interval = $start_time->diff($end_time);
     $diffMinutes = $interval->i;
+    $diffhours = $interval->h;
+    //echo $diffhours;
 
     if($meeting_name == '0' or $start_time == '0' or $end_time == '0' or $users == '0')
     {
@@ -37,14 +39,14 @@ if(isset($_POST['action']) and $_POST['action'] == 'scheduleMeeting')
     }
     elseif($start_time->format('Y-m-d H:i:s') >= $end_time->format('Y-m-d H:i:s'))
     {
-        echo "The start time should be higher";
+        echo "The end time must be greater than the start time";
     }
-    elseif($diffMinutes < 15 and $start_time->format('Y-m-d H:i:s') >= $end_time->format('Y-m-d H:i:s'))
+    elseif($diffMinutes < 15 and $diffhours == 0)
     {
         echo "The minimum space for a meeting is 15 minutes";
     }else
     {
-        schedule_meeting($users, $meeting_name, $start_time, $end_time);
+        schedule_meeting($_POST['users'], $meeting_name, $start_time, $end_time);
     }
    
 }
@@ -64,9 +66,10 @@ function save_register($user, $start_time, $end_time, $meeting_name)
 // function to detect conflict with another meetings
 function detect_conflict($user_id, $start_time, $end_time)
 {
+    $start_time->setTime($start_time->format('H'), $start_time->format('i')+1,$start_time->format('s'));
     $conn = db();
     $user_conflited = "";
-    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND start_time BETWEEN '".$start_time->format('Y-m-d H:i:s')."' AND '".$end_time->format('Y-m-d H:i:s')."' OR end_time BETWEEN '".$start_time->format('Y-m-d H:i:s')."' AND '".$end_time->format('Y-m-d H:i:s')."' LIMIT 1";
+    $sql = "SELECT * FROM meetings WHERE user_id = {$user_id} AND (start_time BETWEEN '".$start_time->format('Y-m-d H:i:s')."' AND '".$end_time->format('Y-m-d H:i:s')."' OR end_time BETWEEN '".$start_time->format('Y-m-d H:i:s')."' AND '".$end_time->format('Y-m-d H:i:s')."') LIMIT 1";
     //echo $sql; die();
     $result = mysqli_query($conn, $sql);
     if(mysqli_num_rows($result) > 0)
@@ -85,9 +88,11 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
 {
     if(empty($users))
         exit();
-
+    //echo $users;
     $users = explode(',', $users);
     $user_conflicts = array();
+
+    // This foreach will validate that the user is not already in the meeting list
     foreach ($users as $user) 
     {
         $flag_conflict = detect_conflict($user, $start_time, $end_time);
@@ -95,14 +100,9 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
         {
             $user_conflicts[] = $flag_conflict;
         }
-        else
-        {
-            //$startTime = new DateTime($start_time);
-            //$endTime = new DateTime($end_time);
-            save_register($user, $start_time->format('Y-m-d H:i:s'), $end_time->format('Y-m-d H:i:s'), $meeting_name);
-        }
     }
 
+    // Function save users in the calendar or send the conflicting messages
     if(count($user_conflicts) > 0)
     {
         foreach ($user_conflicts as $conflict)
@@ -112,6 +112,10 @@ function schedule_meeting($users, $meeting_name, $start_time, $end_time)
         echo "The meeting has not been booked";
     }
     else{
+        foreach($users as $userAdd)
+        {
+            save_register($userAdd, $start_time->format('Y-m-d H:i:s'), $end_time->format('Y-m-d H:i:s'), $meeting_name);
+        }
         echo "The meeting was booked!";
     }
 }

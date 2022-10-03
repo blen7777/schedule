@@ -128,8 +128,8 @@
 				{
 					$(".load-conflicts").show();
 					$(".load-conflicts").html(response);
-					$(".load-conflicts").fadeOut( 10000, function() {
-						//window.location.reload();
+					$(".load-conflicts").fadeOut( 9000, function() {
+						window.location.reload();
 					});
                    
 				}
